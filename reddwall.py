@@ -9,7 +9,7 @@ import os.path
 import sys
 import json
 
-r = praw.Reddit(user_agent='mac:org.bauer.reddwall:v1.0.0 (by /u/mjbauer95)')
+r = praw.Reddit("DEFAULT", user_agent='mac:org.bauer.reddwall:v1.0.0 (by /u/mjbauer95)')
 
 pasts = ['hour', 'day', 'week', 'month', 'year', 'all']
 suggested_subreddits = ['wallpapers', 'wallpaper', 'EarthPorn', 'BackgroundArt', 'TripleScreenPlus', 'quotepaper', 'BigWallpapers', 'MultiWall', 'DesktopLego', 'VideoGameWallpapers']
@@ -214,15 +214,8 @@ class ReddWall(wx.App):
 		#if self.updatingSubmissions:
 		#	return
 		self.updatingSubmissions = True
-		subreddit = r.get_subreddit(self.settings['subreddit'])
-		pasts = {
-			'hour': subreddit.get_top_from_hour,
-			'day': subreddit.get_top_from_day,
-			'week': subreddit.get_top_from_week,
-			'month': subreddit.get_top_from_month,
-			'year': subreddit.get_top_from_year,
-			'all': subreddit.get_top_from_all
-		}
+		subreddit = r.subreddit(self.settings['subreddit'])
+		
 		self.submissions = []
 		num_submissions = self.MIN_NUM
 		limit = 100
@@ -230,7 +223,15 @@ class ReddWall(wx.App):
 			limit = 100
 		elif self.settings['select'] == 'top':
 			limit = 1
-		request = pasts[self.settings['past']](limit=limit)
+		pasts = {
+			'hour': subreddit.top('hour', limit=limit),
+			'day': subreddit.top('day', limit=limit),
+			'week': subreddit.top('week', limit=limit),
+			'month': subreddit.top('month', limit=limit),
+			'year': subreddit.top('year', limit=limit),
+			'all': subreddit.top('all', limit=limit)
+		}
+		request = pasts[self.settings['past']]
 		for submission in request:
 			if self.SubmissionOkay(submission):
 				self.submissions.append(submission)
